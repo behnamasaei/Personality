@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Personality.Blog;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
 using Volo.Abp.Data;
 using Volo.Abp.DependencyInjection;
 using Volo.Abp.EntityFrameworkCore;
+using Volo.Abp.EntityFrameworkCore.Modeling;
 using Volo.Abp.FeatureManagement.EntityFrameworkCore;
 using Volo.Abp.Identity;
 using Volo.Abp.Identity.EntityFrameworkCore;
@@ -52,6 +54,12 @@ public class PersonalityDbContext :
 
     #endregion
 
+    public DbSet<Post> Posts { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<Category> Categories { get; set; }
+    public DbSet<TagPost> TagPosts { get; set; }
+    public DbSet<CategoryPost> CategoryPosts { get; set; }
+    
     public PersonalityDbContext(DbContextOptions<PersonalityDbContext> options)
         : base(options)
     {
@@ -75,11 +83,52 @@ public class PersonalityDbContext :
 
         /* Configure your own tables/entities inside here */
 
-        //builder.Entity<YourEntity>(b =>
-        //{
-        //    b.ToTable(PersonalityConsts.DbTablePrefix + "YourEntities", PersonalityConsts.DbSchema);
-        //    b.ConfigureByConvention(); //auto configure for the base class props
-        //    //...
-        //});
+        builder.Entity<Post>(b =>
+        {
+            b.ToTable(PersonalityConsts.DbTablePrefix + "Posts", PersonalityConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.HasMany(x => x.Tags)
+                .WithMany(x => x.Posts)
+                .UsingEntity(x => x.ToTable("TagPosts"));
+        });
+        
+        builder.Entity<Tag>(b =>
+        {
+            b.ToTable(PersonalityConsts.DbTablePrefix + "Tags", PersonalityConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.HasMany(x => x.Posts)
+                .WithMany(x => x.Tags)
+                .UsingEntity(x => x.ToTable("TagPosts"));
+        });
+        
+        builder.Entity<Category>(b =>
+        {
+            b.ToTable(PersonalityConsts.DbTablePrefix + "Categorys", PersonalityConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.HasMany(x => x.Posts)
+                .WithMany(x => x.Categories)
+                .UsingEntity(x => x.ToTable("CategoryPosts"));
+        });
+        
+        builder.Entity<TagPost>(b =>
+        {
+            b.ToTable(PersonalityConsts.DbTablePrefix + "TagPosts", PersonalityConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.HasKey(x => new { x.TagId, x.PostId });
+            b.HasOne(x => x.Tag)
+                .WithMany(x => x.TagsPosts)
+                .HasForeignKey(x => x.TagId);
+        });
+        
+        
+        builder.Entity<CategoryPost>(b =>
+        {
+            b.ToTable(PersonalityConsts.DbTablePrefix + "CategoryPosts", PersonalityConsts.DbSchema);
+            b.ConfigureByConvention(); //auto configure for the base class props
+            b.HasKey(x => new { x.CategoryId, x.PostId });
+            b.HasOne(x => x.Category)
+                .WithMany(x => x.CategoryPosts)
+                .HasForeignKey(x => x.CategoryId);
+        });
     }
 }
