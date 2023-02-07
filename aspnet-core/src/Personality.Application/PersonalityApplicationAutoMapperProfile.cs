@@ -10,9 +10,21 @@ public class PersonalityApplicationAutoMapperProfile : Profile
         /* You can configure your AutoMapper mapping configuration here.
          * Alternatively, you can split your mapping configurations
          * into multiple profile classes for a better organization. */
-        CreateMap<Category, CategoryDto>();
-        CreateMap<Tag, TagDto>();
-        CreateMap<CreateUpdateCategoryDto, Category>();
-        CreateMap<CreateUpdateTagDto, Tag>();
+        CreateMap<Category, CategoryDto>().ReverseMap();
+        CreateMap<Tag, TagDto>().ReverseMap();
+        CreateMap<Post, PostDto>().ReverseMap();
+        CreateMap<Post, PostWithDetail>().ReverseMap();
+        CreateMap<PostDto, PostWithDetail>().ReverseMap();
+
+        CreateMap<TagPost, TagPostDto>().ReverseMap();
+        CreateMap<CategoryPost, CategoryPostDto>().ReverseMap();
+        
+        CreateMap<CreateUpdateCategoryDto, Category>().ReverseMap();
+        CreateMap<CreateUpdateTagDto, Tag>().ReverseMap();
+        CreateMap<CreateUpdatePostDto, Post>().ReverseMap();
+        CreateMap<CreateUpdateTagPostDto, TagPost>().ReverseMap();
+        CreateMap<CreateUpdateCategoryPostDto, CategoryPost>().ReverseMap();
+
+
     }
 }

@@ -4,12 +4,12 @@ using Volo.Abp.Application.Services;
 
 namespace Personality.Blog.Interface;
 
-public interface ITagPostAppService : 
+public interface IPostAppService : 
     ICrudAppService< //Defines CRUD methods
-        TagPostDto, //Used to show tags
-        Guid,
+        PostDto, //Used to show posts
+        Guid, //Primary key of the post entity
         PagedAndSortedResultRequestDto, //Used for paging/sorting
-        CreateUpdateTagPostDto>
+        CreateUpdatePostDto>
 {
     
 }

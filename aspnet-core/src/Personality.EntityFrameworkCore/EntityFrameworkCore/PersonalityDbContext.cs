@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using Personality.Blog;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
 using Volo.Abp.BackgroundJobs.EntityFrameworkCore;
@@ -56,15 +58,10 @@ public class PersonalityDbContext :
 
     public DbSet<Post> Posts { get; set; }
     public DbSet<Tag> Tags { get; set; }
-    public DbSet<Category> Categories { get; set; }
-    public DbSet<TagPost> TagPosts { get; set; }
-    public DbSet<CategoryPost> CategoryPosts { get; set; }
-    
-    public PersonalityDbContext(DbContextOptions<PersonalityDbContext> options)
-        : base(options)
-    {
 
-    }
+    public DbSet<Category> Categories { get; set; }
+    // public DbSet<TagPost> TagPosts { get; set; }
+    // public DbSet<CategoryPost> CategoryPosts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -87,48 +84,210 @@ public class PersonalityDbContext :
         {
             b.ToTable(PersonalityConsts.DbTablePrefix + "Posts", PersonalityConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
-            b.HasMany(x => x.Tags)
-                .WithMany(x => x.Posts)
-                .UsingEntity(x => x.ToTable("TagPosts"));
+            b.HasMany(x => x.CategoryPosts).WithOne().HasForeignKey(x => x.PostId).IsRequired();
         });
-        
+
+
         builder.Entity<Tag>(b =>
         {
             b.ToTable(PersonalityConsts.DbTablePrefix + "Tags", PersonalityConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
-            b.HasMany(x => x.Posts)
-                .WithMany(x => x.Tags)
-                .UsingEntity(x => x.ToTable("TagPosts"));
         });
-        
+
         builder.Entity<Category>(b =>
         {
-            b.ToTable(PersonalityConsts.DbTablePrefix + "Categorys", PersonalityConsts.DbSchema);
+            b.ToTable(PersonalityConsts.DbTablePrefix + "Categories", PersonalityConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
-            b.HasMany(x => x.Posts)
-                .WithMany(x => x.Categories)
-                .UsingEntity(x => x.ToTable("CategoryPosts"));
         });
-        
+
+
         builder.Entity<TagPost>(b =>
         {
             b.ToTable(PersonalityConsts.DbTablePrefix + "TagPosts", PersonalityConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
-            b.HasKey(x => new { x.TagId, x.PostId });
-            b.HasOne(x => x.Tag)
-                .WithMany(x => x.TagsPosts)
-                .HasForeignKey(x => x.TagId);
+
+            //define composite key
+            b.HasKey(x => new { x.PostId, x.TagId });
+            //many-to-many configuration
+            b.HasOne<Post>().WithMany(x => x.TagsPosts).HasForeignKey(x => x.PostId).IsRequired();
+            b.HasOne<Tag>().WithMany().HasForeignKey(x => x.TagId).IsRequired();
+            b.HasIndex(x => new { x.PostId, x.TagId });
         });
-        
-        
+
         builder.Entity<CategoryPost>(b =>
         {
             b.ToTable(PersonalityConsts.DbTablePrefix + "CategoryPosts", PersonalityConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
-            b.HasKey(x => new { x.CategoryId, x.PostId });
-            b.HasOne(x => x.Category)
-                .WithMany(x => x.CategoryPosts)
-                .HasForeignKey(x => x.CategoryId);
+
+            //define composite key
+            b.HasKey(x => new { x.PostId, x.CategoryId });
+            //many-to-many configuration
+            b.HasOne<Post>().WithMany(x => x.CategoryPosts).HasForeignKey(x => x.PostId).IsRequired();
+            b.HasOne<Category>().WithMany().HasForeignKey(x => x.CategoryId).IsRequired();
+            b.HasIndex(x => new { x.PostId, x.CategoryId });
         });
+
+
+        // builder.Entity<Post>(b =>
+        // {
+        //     b.ToTable(PersonalityConsts.DbTablePrefix + "Posts", PersonalityConsts.DbSchema);
+        //     b.ConfigureByConvention(); //auto configure for the base class props
+        //
+        //     b.HasMany(x => x.Tags)
+        //         .WithMany(x => x.Posts)
+        //         .UsingEntity<TagPost>
+        //         (
+        //             j => j
+        //                 .HasOne(x => x.Tag)
+        //                 .WithMany(x => x.TagsPosts)
+        //                 .HasForeignKey(x => x.TagId),
+        //             j => j
+        //                 .HasOne(x => x.Post)
+        //                 .WithMany(x => x.TagsPosts)
+        //                 .HasForeignKey(x => x.PostId),
+        //             j => { j.ToTable(PersonalityConsts.DbTablePrefix + "TagPosts"); });
+        //
+        //
+        //     b.HasMany(x => x.Categories)
+        //         .WithMany(x => x.Posts)
+        //         .UsingEntity<CategoryPost>(
+        //             j => j
+        //                 .HasOne(x => x.Category)
+        //                 .WithMany(x => x.CategoryPosts)
+        //                 .HasForeignKey(x => x.CategoryId),
+        //             j => j
+        //                 .HasOne(x => x.Post)
+        //                 .WithMany(x => x.CategoryPosts)
+        //                 .HasForeignKey(x => x.PostId),
+        //             j => { j.ToTable(PersonalityConsts.DbTablePrefix + "CategoryPosts"); });
+
+
+        // b.HasMany(p => p.Tags)
+        //     .WithMany(p => p.Posts)
+        //     .UsingEntity<TagPost>(
+        //         j => j
+        //             .HasOne(pt => pt.Tag)
+        //             .WithMany(t => t.TagsPosts)
+        //             .HasForeignKey(pt => pt.TagId),
+        //         j => j
+        //             .HasOne(pt => pt.Post)
+        //             .WithMany(p => p.TagsPosts)
+        //             .HasForeignKey(pt => pt.PostId),
+        //         j => { j.HasKey(t => new { t.PostId, t.TagId }); });
+        //
+        // b.HasMany(p => p.Categories)
+        //     .WithMany(p => p.Posts)
+        //     .UsingEntity<CategoryPost>(
+        //         j => j
+        //             .HasOne(pt => pt.Category)
+        //             .WithMany(t => t.CategoryPosts)
+        //             .HasForeignKey(pt => pt.CategoryId),
+        //         j => j
+        //             .HasOne(pt => pt.Post)
+        //             .WithMany(p => p.CategoryPosts)
+        //             .HasForeignKey(pt => pt.PostId),
+        //         j => { j.HasKey(t => new { t.PostId, t.CategoryId }); });
+        // });
+
+        // builder.Entity<Tag>(b =>
+        // {
+        //     b.ToTable(PersonalityConsts.DbTablePrefix + "Tags", PersonalityConsts.DbSchema);
+        //     b.ConfigureByConvention(); //auto configure for the base class props
+        //
+        //     b.HasMany(p => p.Posts)
+        //         .WithMany(p => p.Tags)
+        //         .UsingEntity<TagPost>(
+        //             j => j
+        //                 .HasOne(pt => pt.Post)
+        //                 .WithMany(t => t.TagsPosts)
+        //                 .HasForeignKey(pt => pt.PostId),
+        //             j => j
+        //                 .HasOne(pt => pt.Tag)
+        //                 .WithMany(p => p.TagsPosts)
+        //                 .HasForeignKey(pt => pt.TagId),
+        //             j =>
+        //             {
+        //                 j.HasKey(t => new { t.PostId, t.TagId });
+        //                 j.ToTable(PersonalityConsts.DbTablePrefix + "TagPosts");
+        //             });
+        // });
+        //
+        // builder.Entity<Category>(b =>
+        // {
+        //     b.ToTable(PersonalityConsts.DbTablePrefix + "Categories", PersonalityConsts.DbSchema);
+        //     b.ConfigureByConvention(); //auto configure for the base class props
+        //
+        //     b.HasMany(p => p.Posts)
+        //         .WithMany(p => p.Categories)
+        //         .UsingEntity<CategoryPost>(
+        //             j => j
+        //                 .HasOne(pt => pt.Post)
+        //                 .WithMany(t => t.CategoryPosts)
+        //                 .HasForeignKey(pt => pt.PostId),
+        //             j => j
+        //                 .HasOne(pt => pt.Category)
+        //                 .WithMany(p => p.CategoryPosts)
+        //                 .HasForeignKey(pt => pt.CategoryId),
+        //             j =>
+        //             {
+        //                 j.HasKey(t => new { t.PostId, t.CategoryId });
+        //                 j.ToTable(PersonalityConsts.DbTablePrefix + "CategoryPosts");
+        //             });
+        // });
+        //
+        // builder.Entity<TagPost>(b =>
+        // {
+        //     b.HasOne(pt => pt.Post)
+        //         .WithMany(p => p.TagsPosts)
+        //         .HasForeignKey(pt => pt.PostId);
+        //
+        //     b.HasOne(pt => pt.Tag)
+        //         .WithMany(p => p.TagsPosts)
+        //         .HasForeignKey(pt => pt.TagId);
+        // });
+        //
+        //
+        // builder.Entity<CategoryPost>(b =>
+        // {
+        //     b.HasOne(pt => pt.Post)
+        //         .WithMany(p => p.CategoryPosts)
+        //         .HasForeignKey(pt => pt.PostId);
+        //
+        //     b.HasOne(pt => pt.Category)
+        //         .WithMany(p => p.CategoryPosts)
+        //         .HasForeignKey(pt => pt.CategoryId);
+        // });
+
+        // builder.Entity<TagPost>(b =>
+        // {
+        //     b.ToTable(PersonalityConsts.DbTablePrefix + "TagPosts", PersonalityConsts.DbSchema);
+        //     b.ConfigureByConvention(); //auto configure for the base class props
+        //     b.HasOne(x => x.Tag)
+        //         .WithMany(x => x.TagsPosts)
+        //         .HasForeignKey(x => x.TagId);
+        //     b.HasIndex(x => new
+        //     {
+        //         x.PostId, x.TagId
+        //     });
+        // });
+        //
+        //
+        // builder.Entity<CategoryPost>(b =>
+        // {
+        //     b.ToTable(PersonalityConsts.DbTablePrefix + "CategoryPosts", PersonalityConsts.DbSchema);
+        //     b.ConfigureByConvention(); //auto configure for the base class props
+        //     b.HasOne(x => x.Category)
+        //         .WithMany(x => x.CategoryPosts)
+        //         .HasForeignKey(x => x.CategoryId);
+        //     b.HasIndex(x => new
+        //     {
+        //         x.PostId, x.CategoryId
+        //     });
+        // });
+    }
+
+    public PersonalityDbContext(DbContextOptions<PersonalityDbContext> options)
+        : base(options)
+    {
     }
 }
