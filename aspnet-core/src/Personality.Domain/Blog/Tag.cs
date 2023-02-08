@@ -23,4 +23,6 @@ public class Tag : FullAuditedAggregateRoot<Guid>
     public Tag(Guid id) : base(id)
     {
     }
+    
+    
 }

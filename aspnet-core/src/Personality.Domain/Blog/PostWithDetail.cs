@@ -14,5 +14,7 @@ public class PostWithDetail : FullAuditedAggregateRoot<Guid>
     public string Content { get; set; }
     public BlogStatus Status { get; set; }
     public ICollection<Tag> Tags { get; set; }
+    public ICollection<TagPost> TagPosts { get; set; }
     public ICollection<Category> Categories { get; set; }
+    public ICollection<CategoryPost> CategoryPosts { get; set; }
 }

@@ -9,6 +9,9 @@ namespace Personality.Blog;
 
 public interface IPostRepository : IRepository<Post, Guid>
 {
-    Task<List<PostWithDetail>> GetListAsync(PagedAndSortedResultRequestDto input, CancellationToken cancellationToken = default);
-    Task<PostWithDetail> GetAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<List<PostWithDetail>> GetListWithDetailAsync(PagedAndSortedResultRequestDto input,
+        CancellationToken cancellationToken = default);
+
+    Task<PostWithDetail> GetWithDetailAsync(Guid id, CancellationToken cancellationToken = default);
+
 }

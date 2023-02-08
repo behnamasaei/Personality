@@ -60,8 +60,8 @@ public class PersonalityDbContext :
     public DbSet<Tag> Tags { get; set; }
 
     public DbSet<Category> Categories { get; set; }
-    // public DbSet<TagPost> TagPosts { get; set; }
-    // public DbSet<CategoryPost> CategoryPosts { get; set; }
+    public DbSet<TagPost> TagPosts { get; set; }
+    public DbSet<CategoryPost> CategoryPosts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -84,7 +84,12 @@ public class PersonalityDbContext :
         {
             b.ToTable(PersonalityConsts.DbTablePrefix + "Posts", PersonalityConsts.DbSchema);
             b.ConfigureByConvention(); //auto configure for the base class props
-            b.HasMany(x => x.CategoryPosts).WithOne().HasForeignKey(x => x.PostId).IsRequired();
+
+            b.HasMany(x => x.CategoryPosts).WithOne().HasForeignKey(x => x.CategoryId)
+                .OnDelete(DeleteBehavior.Cascade).IsRequired();
+
+            b.HasMany(x => x.TagsPosts).WithOne().HasForeignKey(x => x.TagId)
+                .OnDelete(DeleteBehavior.Cascade).IsRequired();
         });
 
 
@@ -109,7 +114,8 @@ public class PersonalityDbContext :
             //define composite key
             b.HasKey(x => new { x.PostId, x.TagId });
             //many-to-many configuration
-            b.HasOne<Post>().WithMany(x => x.TagsPosts).HasForeignKey(x => x.PostId).IsRequired();
+            b.HasOne<Post>().WithMany(x => x.TagsPosts).HasForeignKey(x => x.PostId).OnDelete(DeleteBehavior.Cascade)
+                .IsRequired();
             b.HasOne<Tag>().WithMany().HasForeignKey(x => x.TagId).IsRequired();
             b.HasIndex(x => new { x.PostId, x.TagId });
         });
@@ -122,7 +128,8 @@ public class PersonalityDbContext :
             //define composite key
             b.HasKey(x => new { x.PostId, x.CategoryId });
             //many-to-many configuration
-            b.HasOne<Post>().WithMany(x => x.CategoryPosts).HasForeignKey(x => x.PostId).IsRequired();
+            b.HasOne<Post>().WithMany(x => x.CategoryPosts).HasForeignKey(x => x.PostId)
+                .OnDelete(DeleteBehavior.Cascade).IsRequired();
             b.HasOne<Category>().WithMany().HasForeignKey(x => x.CategoryId).IsRequired();
             b.HasIndex(x => new { x.PostId, x.CategoryId });
         });

@@ -13,6 +13,10 @@ public class CategoryPost : Entity
     public Guid CategoryId { get; set; }
     // public Category Category { get; set; }
 
+    public CategoryPost()
+    {
+        
+    }
     public CategoryPost(Guid postId, Guid categoryId)
     {
         PostId = postId;

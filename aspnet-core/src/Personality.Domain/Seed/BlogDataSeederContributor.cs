@@ -10,16 +10,13 @@ namespace Personality.Seed;
 
 public class BlogDataSeederContributor : IDataSeedContributor, ITransientDependency
 {
-    private readonly IRepository<Post, Guid> _postRepository;
     private readonly IRepository<Tag, Guid> _tagRepository;
     private readonly IRepository<Category, Guid> _categoryRepository;
 
     public BlogDataSeederContributor(
         IRepository<Tag, Guid> tagRepository,
-        IRepository<Category, Guid> categoryRepository,
-        IRepository<Post, Guid> postRepository)
+        IRepository<Category, Guid> categoryRepository)
     {
-        _postRepository = postRepository;
         _tagRepository = tagRepository;
         _categoryRepository = categoryRepository;
     }
@@ -27,8 +24,7 @@ public class BlogDataSeederContributor : IDataSeedContributor, ITransientDepende
     public async Task SeedAsync(DataSeedContext context)
     {
         if (await _categoryRepository.GetCountAsync() <= 0 &&
-            await _tagRepository.GetCountAsync() <= 0 &&
-            await _postRepository.GetCountAsync() <= 0)
+            await _tagRepository.GetCountAsync() <= 0)
         {
             #region Tag seed
 
@@ -147,32 +143,32 @@ public class BlogDataSeederContributor : IDataSeedContributor, ITransientDepende
 
             #endregion
 
-            #region Post seed
-
-            var Post1ID = Guid.NewGuid();
-
-            var tagPost1 = new List<TagPost>();
-
-            tagPost1.Add(new TagPost(postId: Post1ID, tagId: tag_csharp.Id));
-
-            tagPost1.Add(new TagPost(postId: Post1ID, tagId: tag_asp.Id));
-
-            var catPost1 = new List<CategoryPost>();
-
-            catPost1.Add(new CategoryPost(postId: Post1ID, categoryId: cat_scharp.Id));
-
-            var post1 = await _postRepository.InsertAsync(new Post(Post1ID)
-            {
-                Title = "پست اول",
-                Slug = "post_1",
-                ImageIndexAddress = "xxxx",
-                Content = "متن پست اول",
-                Status = BlogStatus.Publish,
-                TagsPosts = tagPost1,
-                CategoryPosts = catPost1
-            });
-
-            #endregion
+            // #region Post seed
+            //
+            // var Post1ID = Guid.NewGuid();
+            //
+            // var tagPost1 = new List<TagPost>();
+            //
+            // tagPost1.Add(new TagPost(postId: Post1ID, tagId: tag_csharp.Id));
+            //
+            // tagPost1.Add(new TagPost(postId: Post1ID, tagId: tag_asp.Id));
+            //
+            // var catPost1 = new List<CategoryPost>();
+            //
+            // catPost1.Add(new CategoryPost(postId: Post1ID, categoryId: cat_scharp.Id));
+            //
+            // var post1 = await _postRepository.InsertAsync(new Post(Post1ID)
+            // {
+            //     Title = "پست اول",
+            //     Slug = "post_1",
+            //     ImageIndexAddress = "xxxx",
+            //     Content = "متن پست اول",
+            //     Status = BlogStatus.Publish,
+            //     TagsPosts = tagPost1,
+            //     CategoryPosts = catPost1
+            // });
+            //
+            // #endregion
         }
     }
 }

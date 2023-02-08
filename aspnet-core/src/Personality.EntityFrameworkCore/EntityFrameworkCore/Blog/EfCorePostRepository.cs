@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Dynamic.Core;
 using System.Threading;
 using System.Threading.Tasks;
+using JetBrains.Annotations;
 using Microsoft.EntityFrameworkCore;
 using Personality.Blog;
 using Volo.Abp.Application.Dtos;
@@ -14,11 +15,12 @@ namespace Personality.EntityFrameworkCore.Blog;
 
 public class EfCorePostRepository : EfCoreRepository<PersonalityDbContext, Post, Guid>, IPostRepository
 {
+
     public EfCorePostRepository(IDbContextProvider<PersonalityDbContext> dbContextProvider) : base(dbContextProvider)
     {
     }
 
-    public async Task<List<PostWithDetail>> GetListAsync(PagedAndSortedResultRequestDto input,
+    public async Task<List<PostWithDetail>> GetListWithDetailAsync(PagedAndSortedResultRequestDto input,
         CancellationToken cancellationToken = default)
     {
         var query = await ApplyFilterAsync();
@@ -30,13 +32,15 @@ public class EfCorePostRepository : EfCoreRepository<PersonalityDbContext, Post,
             .ToListAsync(GetCancellationToken(cancellationToken));
     }
 
-    public async Task<PostWithDetail> GetAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<PostWithDetail> GetWithDetailAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var query = await ApplyFilterAsync();
         return await query
             .Where(x => x.Id == id)
             .FirstOrDefaultAsync(GetCancellationToken(cancellationToken));
     }
+
+    
 
     private async Task<IQueryable<PostWithDetail>> ApplyFilterAsync()
     {
@@ -58,9 +62,21 @@ public class EfCorePostRepository : EfCoreRepository<PersonalityDbContext, Post,
                     join tag in dbContext.Set<Tag>() on postTags.TagId equals tag.Id
                     select tag).ToList(),
 
+                TagPosts = (from tagsPost in x.TagsPosts
+                join tag in dbContext.Set<TagPost>() on tagsPost.TagId equals tag.TagId
+                select tag).ToList(),
+                
                 Categories = (from postCategories in x.CategoryPosts
                     join category in dbContext.Set<Category>() on postCategories.CategoryId equals category.Id
                     select category).ToList(),
-            });
+                
+                CategoryPosts = (from categoriesPost in x.CategoryPosts
+                    join category in dbContext.Set<CategoryPost>() on categoriesPost.CategoryId equals category.CategoryId
+                    select category).ToList()
+            })
+            .Where(x => x.IsDeleted == false)
+            .AsNoTracking();
     }
+
+
 }
